@@ -1,0 +1,113 @@
+---
+title: "Wyscig Losowy - animowany wykres"
+author: "Bartosz Ciolek - 83534"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+##### UWAGA, PROGRAM ŁADUJE SIĘ OKOŁO 60 SEKUND #####
+
+```
+**Temat**
+
+Tematem tej pracy są zagadnienia animowania wykresów w R za pośrednictwem RMarkdown a także działanie funkcji **sample**, czyli jednego z generatorów losowych numerów używanych w R.
+
+
+**Poniżej opisane jest działanie programu:**
+```{r include=FALSE}
+##### INSTALOWANIE WYMAGANYCH BIBLIOTEK - JESLI NIE MA #####
+if (!require(ggplot2)) install.packages("ggplot2") #WYKRES
+if (!require(gganimate)) install.packages("gganimate") #ANIMACJA WYKRESU I EFEKTY
+if (!require(gifski)) install.packages("ggifski")#ANIMACJA WYKRESU I EFEKTY
+if (!require(knitr))install.packages("knitr")
+
+##### ŁADOWANIE WYMAGANYCH BIBLIOTEK #####
+library(ggplot2)
+library(gganimate)
+library(gifski)
+```
+
+1. Program dla określonych zmiennych tworzy wektor kumulatywny o długości 25 liczb
+
+2. Liczba jest losowana jako całkowita wartość z przedziału od 1 do losowej liczby z przedziału od 1 do 25, co zapisane jest poniżej:
+
+_(sample(1:(sample(1:20,1)),25, replace=TRUE))_
+
+3. Losowanie jest przeprowadzane za pomocą funkcji **sample**. Działanie funkcji jest opisane poniżej
+
+3. Losowanie jest przeprowadzaone dla czterech zmiennych
+
+```{r include = FALSE}
+A=cumsum(sample(1:(sample(1:20,1)),25, replace=TRUE))
+B=cumsum(sample(1:(sample(1:20,1)),25, replace=TRUE))
+C=cumsum(sample(1:(sample(1:20,1)),25, replace=TRUE))
+D=cumsum(sample(1:(sample(1:20,1)),25, replace=TRUE))
+Iteracje=(1:25)
+```
+4. Następnym krokiem jest utworzenie ramki danych z uzyskanych wartości - ramka danych pojawia się na samym dole dla lepszej czytelności
+```{r echo=FALSE, results='asis'}
+E=data.frame(A,B,C,D)
+library(knitr)
+```
+5. Uzyskane wartości są animowane używając funkcji ggplot. Opis poszczególnych części funkcji tworzącej wykres i animaującej go można znaleźć w kodzie.
+``` {r echo=FALSE}
+Wykres=ggplot(E)+ #STWORZ WYKRES GGPLOT Z RAMKI DANYCH E
+  geom_point( #STWÓRZ WYKRES PUNKTOWY
+    aes(Iteracje,A), #Z DANYCH A I WARTOSCI ITERACJI 1-25
+    color="pink", #KOLOR RÓŻOWY
+    size=8)+ #ROZMIAR 8
+  geom_point(aes(Iteracje,B),color="blue",size=8)+
+  geom_point(aes(Iteracje,C),color="yellow",size=8)+
+  geom_point(aes(Iteracje,D),color="green",size=8)+
+  geom_hline( #NARYSUJ LINIE - TO BĘDZIE META
+    yintercept = (max(E)), #NIECH LINIA ZNAJDUJE SIĘ NA WYSOKOŚCI MAKSYMALNEJ WARTOŚCI RAMKI DANYCH E
+    size=3, #ROZMIAR LINII
+    color="red")+ #KOLOR LINII
+  scale_color_viridis_d() + #MOTYW SIATKI WYKRESU
+  labs(x = "Kroki", y = "A,B,C,D") + #OPISY OSI
+  theme(legend.position = "top") #LEGENDA
+```
+``` {r echo=FALSE, include = TRUE}
+ Wykres + #STWÓRZ WYKRES
+  shadow_wake(wake_length = 0.1, #DODAJ EFEKT ŚLADU
+              alpha = FALSE)+
+  transition_reveal(Iteracje) #ANIMACJA PO KROKACH - ITERACJE
+```
+
+
+**Generowanie liczb losowych**
+
+Generowanie losowych numerów nie jest prostym zadaniem dla komputerów. Częstym sposobem jest używanie aktualnego czasu jako ziarna do wytworzenia pseudolosowego wyniku.
+
+W R występują następujące polecenia, które są w stanie wygenerować losową liczbę:
+
+**runif** - generuje liczbę dziesiętną w podanym zakresie za pomocą rozkładu jednostajnego
+``` {r}
+x1 <- runif(1, 5.0, 7.5)
+x1
+```
+**sample** - ta z kolei funkcja podaje liczbę całkowitą w podanym zakresie (z tego polecenia skorzystano w zadaniu)
+``` {r}
+x2 <- sample(1:7.5, 1, replace=T)
+x2
+```
+
+
+
+**Poniżej znajduje się ramka danych z kumulatą wygenerowanych wartości**
+Interesujący zdaje się fakt, że przy 25 krokach nie udało mi się zaobserwować wyprzedzenia "lidera" wśród wykresów po pierwszych około 5 krokach, mimo że taka sytuacja powinna być teoretycznie możliwa.
+``` {r echo=FALSE}
+kable(E)
+
+```
+
+**Bibliografia**
+
+[How to choose a random number in R](https://blog.revolutionanalytics.com/2009/02/how-to-choose-a-random-number-in-r.html)
+
+[Random Number Generator](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Random.html)
+
+[GGanimate:How to create plots with beautiful animation in R](https://www.datanovia.com/en/blog/gganimate-how-to-create-plots-with-beautiful-animation-in-r/)
+
+[How Machines Generate Random Numbers with Time](https://www.youtube.com/watch?v=Ac4Z1VMsE3E)
